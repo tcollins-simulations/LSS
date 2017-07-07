@@ -15,17 +15,18 @@ type(particle), dimension(i) :: s
 type(grav),dimension(i,i) :: f
 real,parameter :: G=6.674e-11, pi=3.1415926
 integer :: itr,t,input, n, x
-real :: totaltime,tstep
+real :: totaltime,tstep,d,gsl
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
 open(13,file='gravforce.txt') 
 open(14,file='gravxy.txt') 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
-call xychoose() 
+call xychoose2() 
 s%m=5e6
 do n=1,i
 	print *, n, s(n)%x, s(n)%y
 end do
 call timedef()
+gsl=1/35*d
 do t=1,itr
 	totaltime=t*tstep
 	call gravpotential()
@@ -83,11 +84,36 @@ subroutine xychoose()
 	end if
 end subroutine xychoose
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
+subroutine xychoose2()
+	print *, "How would you like to input initial input data?"
+	print *, "Enter 1 for a grid defined by the step between particles" 
+	print *, "2 for a grid defined by area"
+	read *, input
+	if (input==1) then
+		call stepgrid()
+	else if (input==2) then
+		call areagrid()
+	else 
+		do while (input/=1 .and. input/=2)
+			print *, "Invalid input. Try again:"
+			print *, "Enter 1 for a grid defined by the step between particles" 
+			print *, "2 for a grid defined by area"
+			read *, input
+			if (input==1) then
+				call stepgrid()
+			else if (input==2) then
+				call areagrid()
+			else 
+
+				continue
+			end if
+		end do
+	end if
+end subroutine xychoose2
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++
 subroutine objectx()
 	s(n)%ax=s(n)%fx/s(n)%m
 	s(n)%vx=s(n)%vix+s(n)%ax*tstep
-	call vxcap()
-	print *, totaltime, n, "vx:", s(n)%vx
 	s(n)%dx=s(n)%vx*tstep
 	s(n)%x=s(n)%x+s(n)%dx
 	s(n)%vix=s(n)%vx
@@ -96,8 +122,6 @@ end subroutine objectx
 subroutine objecty()
 	s(n)%ay=s(n)%fy/s(n)%m
 	s(n)%vy=s(n)%viy+s(n)%ay*tstep
-	call vycap()
-	print *, totaltime, n, "vy:", s(n)%vy
 	s(n)%dy=s(n)%vy*tstep
 	s(n)%y=s(n)%y+s(n)%dy
 	s(n)%viy=s(n)%vy
@@ -141,7 +165,7 @@ subroutine gravpotential()
 			if (n/=x) then
 				f(n,x)%r=SQRT(((s(n)%x-s(x)%x)**2)+((s(n)%y-s(x)%y)**2))
 				f(n,x)%theta=ATAN(ABS(s(x)%y-s(n)%y)/ABS(s(x)%x-s(n)%x))
-				f(n,x)%fg=2*G*s(n)%m*s(x)%m/f(n,x)%r
+				f(n,x)%fg=2*G*s(n)%m*s(x)%m*f(n,x)%r/(f(n,x)%r**2+gsl**2)
 				f(n,x)%fgx=f(n,x)%fg*COS(f(n,x)%theta)
 				f(n,x)%fgy=f(n,x)%fg*SIN(f(n,x)%theta)
 				if (s(n)%x>s(x)%x) then
@@ -202,7 +226,6 @@ end subroutine importcoordinates
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
 subroutine stepgrid()
 	integer :: l, p, k, w, u
-	real :: d
 	l=AINT(SQRT(REAL(i)))
 	print *, "Enter spacing between particles"
 	read *, d
@@ -221,7 +244,7 @@ subroutine stepgrid()
 end subroutine stepgrid
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
 subroutine areagrid()
-	integer :: l, d, p, k, w, u
+	integer :: l, p, k, w, u
 	real :: A
 	l=AINT(SQRT(REAL(i)))
 	print *, "Enter area of analysis:"
