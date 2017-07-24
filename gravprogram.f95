@@ -87,7 +87,6 @@ subroutine objectx()
 	s(n)%ax=s(n)%fx/s(n)%m
 	s(n)%vx=s(n)%vix+s(n)%ax*tstep
 	call vxcap()
-	print *, totaltime, n, "vx:", s(n)%vx
 	s(n)%dx=s(n)%vx*tstep
 	s(n)%x=s(n)%x+s(n)%dx
 	s(n)%vix=s(n)%vx
@@ -97,7 +96,6 @@ subroutine objecty()
 	s(n)%ay=s(n)%fy/s(n)%m
 	s(n)%vy=s(n)%viy+s(n)%ay*tstep
 	call vycap()
-	print *, totaltime, n, "vy:", s(n)%vy
 	s(n)%dy=s(n)%vy*tstep
 	s(n)%y=s(n)%y+s(n)%dy
 	s(n)%viy=s(n)%vy
