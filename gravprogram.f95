@@ -14,7 +14,8 @@ integer, parameter :: i=9
 type(particle), dimension(i) :: s
 type(grav),dimension(i,i) :: f
 real,parameter :: G=6.674e-11, pi=3.1415926
-integer :: itr,t,tstep,totaltime,input, n, x
+integer :: itr,t,input, n, x
+real :: totaltime,tstep
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
 open(13,file='gravforce.txt') 
 open(14,file='gravxy.txt') 
@@ -85,6 +86,7 @@ end subroutine xychoose
 subroutine objectx()
 	s(n)%ax=s(n)%fx/s(n)%m
 	s(n)%vx=s(n)%vix+s(n)%ax*tstep
+	call vxcap()
 	s(n)%dx=s(n)%vx*tstep
 	s(n)%x=s(n)%x+s(n)%dx
 	s(n)%vix=s(n)%vx
@@ -93,16 +95,37 @@ end subroutine objectx
 subroutine objecty()
 	s(n)%ay=s(n)%fy/s(n)%m
 	s(n)%vy=s(n)%viy+s(n)%ay*tstep
+	call vycap()
 	s(n)%dy=s(n)%vy*tstep
 	s(n)%y=s(n)%y+s(n)%dy
 	s(n)%viy=s(n)%vy
 end subroutine objecty
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
+subroutine vxcap()
+	if (s(n)%vx>0.1E-01) then
+		s(n)%vx=.1E-01
+	else if (s(n)%vx<-0.1E-01) then
+		s(n)%vx=-.1E-01
+	else
+		continue
+	end if
+end subroutine vxcap
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++
+subroutine vycap()
+	if (s(n)%vy>0.1E-01) then
+		s(n)%vy=.1E-01
+	else if (s(n)%vy<-0.1E-01) then
+		s(n)%vy=-.1E-01
+	else
+		continue
+	end if
+end subroutine vycap
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++
 subroutine xytxt()
 	integer :: write, finalstep
 	finalstep=i-1
 	write (14,5,advance='no') totaltime
-	5 format(I7,2X)
+	5 format(E10.4,2X)
 	6 format(2(E10.4,2x))
 	do write=1,finalstep
 		write(14,6,advance='no') s(write)%x, s(write)%y
@@ -176,7 +199,8 @@ subroutine importcoordinates()
 end subroutine importcoordinates
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
 subroutine stepgrid()
-	integer :: l, d, p, k, w, u
+	integer :: l, p, k, w, u
+	real :: d
 	l=AINT(SQRT(REAL(i)))
 	print *, "Enter spacing between particles"
 	read *, d
