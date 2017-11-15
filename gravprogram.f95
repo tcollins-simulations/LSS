@@ -10,7 +10,7 @@ type grav
 	real :: fg, theta, fgx, fgy, r
 end type grav
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
-integer, parameter :: i=9
+integer, parameter :: i=9 !max is 29584, must be a square
 type(particle), dimension(i) :: s
 type(grav),dimension(i,i) :: f
 real,parameter :: G=6.674e-11, pi=3.1415926
@@ -19,6 +19,7 @@ real :: totaltime,tstep
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
 open(13,file='gravforce.txt') 
 open(14,file='gravxy.txt') 
+open(15,file='xyframes.txt')
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
 call xychoose() 
 s%m=5e6
@@ -26,14 +27,18 @@ do n=1,i
 	print *, n, s(n)%x, s(n)%y
 end do
 call timedef()
+t=0
+call xyinitial()
+call excelinitial()
 do t=1,itr
 	totaltime=t*tstep
 	call gravpotential()
-	call gravtxt()
+	!call gravtxt()
 	do n=1,i
 		call objectx()
 		call objecty()
 	end do
+	call excel()
 	call xytxt()
 end do
 contains
@@ -121,6 +126,17 @@ subroutine vycap()
 	end if
 end subroutine vycap
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
+subroutine xyinitial()
+	finalstep=i-1
+	write (14,5,advance='no') totaltime
+	5 format(E10.4,2X)
+	6 format(2(E10.4,2x))
+	do write=1,finalstep
+		write(14,6,advance='no') s(write)%x, s(write)%y
+	end do
+	write (14,6,advance='yes') s(i)%x, s(i)%y
+end subroutine xyinitial
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++
 subroutine xytxt()
 	integer :: write, finalstep
 	finalstep=i-1
@@ -177,6 +193,30 @@ subroutine gravtxt()
 		end do
 	end do
 end subroutine gravtxt
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++
+subroutine excelinitial()
+	do n=1,i
+		write (15,*) t,s(n)%x,s(n)%y
+	end do
+end subroutine excelinitial
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++
+subroutine excel()
+	integer :: write, finalstep, timetestint
+	real :: endtime, timedivide, frames, timetest
+	finalstep=i-1
+	frames=10
+	endtime=tstep*itr
+	timedivide=endtime/frames
+	timetest=t/timedivide
+	timetestint=timetest
+	if (timetestint == timetest) then
+		do n=1,i
+			write (15,*) t, s(n)%x, s(n)%y
+		end do
+	else
+		continue
+	end if
+end subroutine excel
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
 subroutine inputcoordinates()
 	print *, "Enter the coordinate values for object 1:"
