@@ -10,12 +10,12 @@ type grav
 	real :: fg, theta, fgx, fgy, r
 end type grav
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
-integer, parameter :: i=81 !max is 29584, must be a square
+integer, parameter :: i=10000 !max is 29584, must be a square
 type(particle), dimension(i) :: s
 type(grav),dimension(i,i) :: f
 real,parameter :: G=6.674e-11, pi=3.1415926
 integer :: itr,t,input, n, x
-real :: totaltime,tstep
+real :: totaltime,tstep, frames
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
 open(13,file='gravforce.txt') 
 open(14,file='gravxy.txt') 
@@ -28,8 +28,9 @@ do n=1,i
 end do
 call timedef()
 t=0
-!call xytxt()
+call xytxt()
 call excelinitial()
+print *, "Running..."
 do t=1,itr
 	totaltime=t*tstep
 	call gravpotential()
@@ -39,7 +40,7 @@ do t=1,itr
 		call objecty()
 	end do
 	call excel()
-	!call xytxt()
+	call xytxt()
 end do
 print *, "Simulation complete"
 contains
@@ -185,7 +186,6 @@ subroutine gravtxt()
 end subroutine gravtxt
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
 subroutine excelinitial()
-	real :: frames
 	print *, "How many frames to capture?"
 	read *, frames
 	do n=1,i
@@ -195,7 +195,7 @@ end subroutine excelinitial
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
 subroutine excel()
 	integer :: write, finalstep, timetestint
-	real :: endtime, timedivide, frames, timetest
+	real :: endtime, timedivide, timetest
 	finalstep=i-1
 	endtime=tstep*itr
 	timedivide=endtime/frames
