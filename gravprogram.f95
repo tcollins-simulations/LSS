@@ -199,11 +199,11 @@ subroutine excel()
 	finalstep=i-1
 	endtime=tstep*itr
 	timedivide=endtime/frames
-	timetest=t/timedivide
+	timetest=totaltime/timedivide
 	timetestint=timetest
 	if (timetestint == timetest) then
 		do n=1,i
-			write (15,*) t, s(n)%x, s(n)%y
+			write (15,*) totaltime, s(n)%x, s(n)%y
 		end do
 	else
 		continue
