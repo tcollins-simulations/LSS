@@ -10,7 +10,7 @@ type grav
 	real :: fg, theta, fgx, fgy, r
 end type grav
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
-integer, parameter :: i=10000 !max is 29584, must be a square
+integer, parameter :: i=225 !max is 29584, must be a square
 type(particle), dimension(i) :: s
 type(grav),dimension(i,i) :: f
 real,parameter :: G=6.674e-11, pi=3.1415926
@@ -27,11 +27,14 @@ do n=1,i
 	print *, n, s(n)%x, s(n)%y
 end do
 call timedef()
-t=0
-call xytxt()
+totaltime=0
+!call xytxt()
 call excelinitial()
 print *, "Running..."
+write (*,4,advance="no") t,"/",itr
+4 format(I5,A,I5)
 do t=1,itr
+	write (*,4,advance="no") t,"/",itr
 	totaltime=t*tstep
 	call gravpotential()
 	!call gravtxt()
@@ -40,7 +43,7 @@ do t=1,itr
 		call objecty()
 	end do
 	call excel()
-	call xytxt()
+	!call xytxt()
 end do
 print *, "Simulation complete"
 contains
@@ -189,7 +192,7 @@ subroutine excelinitial()
 	print *, "How many frames to capture?"
 	read *, frames
 	do n=1,i
-		write (15,*) t,s(n)%x,s(n)%y
+		write (15,*) totaltime,s(n)%x,s(n)%y
 	end do
 end subroutine excelinitial
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -232,20 +235,22 @@ end subroutine importcoordinates
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++
 subroutine stepgrid()
 	integer :: l, p, k, w, u
-	real :: d
+	real :: d, r
 	l=AINT(SQRT(REAL(i)))
 	print *, "Enter spacing between particles"
 	read *, d
 	do u=1,l
 		do p=1,l
+			call RANDOM_NUMBER(r)
 			n=l*(u-1)+p
-			s(n)%x=(p-1)*d
+			s(n)%x=(p-1)*d+r
 		end do
 	end do
 	do w=1,l
 		do k=1,l
+			call RANDOM_NUMBER(r)
 			n=l*(w-1)+k
-			s(n)%y=(w-1)*d
+			s(n)%y=(w-1)*d+r
 		end do
 	end do
 end subroutine stepgrid
